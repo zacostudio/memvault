@@ -13,8 +13,8 @@ The **memvault-marketplace** plugin lets you manage memvault notes directly from
 In Claude Code, run:
 
 ```
-/plugin marketplace add zacostudio/memvault.gh
-/plugin install memvault-marketplace@zacostudio-memvault-gh
+/plugin marketplace add zacostudio/memvault
+/plugin install memvault-marketplace@zacostudio-memvault
 ```
 
-See [memvault-marketplace/README.md](./memvault-marketplace/README.md) for details.
+See [Plugin Documentation](./docs/README.md) for details.

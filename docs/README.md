@@ -21,13 +21,13 @@ Claude Code plugin for managing notes and knowledge via [memvault](https://githu
 In Claude Code, run:
 
 ```
-/plugin marketplace add zacostudio/memvault.gh
+/plugin marketplace add zacostudio/memvault
 ```
 
 ### Step 2: Install plugin
 
 ```
-/plugin install memvault-marketplace@zacostudio-memvault-gh
+/plugin install memvault-marketplace@zacostudio-memvault
 ```
 
 ### Verify
@@ -58,9 +58,11 @@ port: 19836
 
 ```json
 {
-  "memvault": {
-    "type": "sse",
-    "url": "http://localhost:<YOUR_PORT>/mcp"
+  "mcpServers": {
+    "memvault": {
+      "type": "sse",
+      "url": "http://localhost:<YOUR_PORT>/mcp"
+    }
   }
 }
 ```
