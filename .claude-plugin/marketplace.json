@@ -1,5 +1,5 @@
 {
-	"name": "memvault-marketplace",
+	"name": "memvault-noteman",
 	"owner": {
 		"name": "zacostudio"
 	},
@@ -13,8 +13,8 @@
 	},
 	"plugins": [
 		{
-			"name": "memvault-marketplace",
-			"source": "./plugins/memvault-marketplace",
+			"name": "memvault-noteman",
+			"source": "./plugins/memvault-noteman",
 			"description": "Manage notes, groups, and knowledge via memvault MCP server. Create, read, update, delete, and search notes directly from Claude Code.",
 			"category": "integration"
 		}

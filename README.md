@@ -6,7 +6,7 @@ Download the latest version from the [Releases](https://github.com/zacostudio/me
 
 ## Claude Code Plugin
 
-The **memvault-marketplace** plugin lets you manage memvault notes directly from Claude Code.
+The **memvault-noteman** plugin lets you manage memvault notes directly from Claude Code.
 
 ### Install
 
@@ -14,7 +14,7 @@ In Claude Code, run:
 
 ```
 /plugin marketplace add zacostudio/memvault
-/plugin install memvault-marketplace@zacostudio-memvault
+/plugin install memvault-noteman@zacostudio-memvault
 ```
 
 See [Plugin Documentation](./docs/README.md) for details.

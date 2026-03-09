@@ -13,14 +13,14 @@ Guide the user through configuring the memvault MCP server connection.
 ### 1. Check Current Configuration
 
 Read the current `.mcp.json` in the plugin directory to see the configured URL.
-Check if `.claude/memvault-marketplace.local.md` exists for port settings.
+Check if `.claude/memvault-noteman.local.md` exists for port settings.
 
 ### 2. Determine Port
 
 If an argument was provided, use it as the port number.
 If no argument, check these sources in order:
 
-1. `.claude/memvault-marketplace.local.md` — `port` field in YAML frontmatter
+1. `.claude/memvault-noteman.local.md` — `port` field in YAML frontmatter
 2. Default: **19836**
 
 ### 3. Verify Connectivity
@@ -39,7 +39,7 @@ If connection refused or other error: Inform user that memvault app may not be r
 
 ### 4. Save Configuration
 
-Create or update `.claude/memvault-marketplace.local.md`:
+Create or update `.claude/memvault-noteman.local.md`:
 
 ```markdown
 ---

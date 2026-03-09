@@ -1,4 +1,4 @@
-# memvault-marketplace
+# memvault-noteman
 
 Claude Code plugin for managing notes and knowledge via [memvault](https://github.com/zacostudio/memvault) MCP server.
 
@@ -27,7 +27,7 @@ In Claude Code, run:
 ### Step 2: Install plugin
 
 ```
-/plugin install memvault-marketplace@zacostudio-memvault
+/plugin install memvault-noteman@zacostudio-memvault
 ```
 
 ### Verify
@@ -46,7 +46,7 @@ To reload after changes:
 
 The default port is **19836**. To change it:
 
-1. Create `.claude/memvault-marketplace.local.md` in your project:
+1. Create `.claude/memvault-noteman.local.md` in your project:
 
 ```markdown
 ---
@@ -72,7 +72,7 @@ port: 19836
 Or use the setup command:
 
 ```
-/memvault-marketplace:memvault-setup [port]
+/memvault-noteman:memvault-setup [port]
 ```
 
 ## Usage
@@ -91,8 +91,8 @@ The note management skill activates automatically when you mention memvault note
 ### Setup Command
 
 ```
-/memvault-marketplace:memvault-setup         # Check connection with default port
-/memvault-marketplace:memvault-setup 8080    # Configure custom port
+/memvault-noteman:memvault-setup         # Check connection with default port
+/memvault-noteman:memvault-setup 8080    # Configure custom port
 ```
 
 ### Available MCP Tools
