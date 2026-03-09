@@ -1,6 +1,6 @@
 {
 	"name": "memvault-plugin",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"description": "Marketplace plugin for memvault MCP server. Provides skills for managing notes, groups, and knowledge via memvault's MCP server with a stable stdio bridge.",
 	"author": {
 		"name": "zacostudio"
