@@ -29,7 +29,7 @@ http://localhost:<PORT>/mcp
 
 ### Port Configuration
 
-Check `.claude/memvault-noteman.local.md` for custom port settings:
+Check `.claude/memvault-plugin.local.md` for custom port settings:
 
 ```yaml
 ---
@@ -39,12 +39,12 @@ port: 19836
 
 If the file does not exist, use default port **19836**.
 If the memvault app changed its MCP server port, update both:
-1. `.claude/memvault-noteman.local.md` — the `port` field
+1. `.claude/memvault-plugin.local.md` — the `port` field
 2. `.mcp.json` in the plugin root — the `url` field
 
 ## Available MCP Tools
 
-All tools are prefixed with `mcp__plugin_memvault-noteman_memvault__` when used in Claude Code.
+All tools are prefixed with `mcp__plugin_memvault-plugin_memvault__` when used in Claude Code.
 
 ### Note Operations
 

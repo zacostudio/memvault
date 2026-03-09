@@ -1,5 +1,5 @@
 {
-  "name": "memvault-noteman",
+  "name": "memvault-plugin",
   "version": "0.2.0",
   "description": "Marketplace plugin for memvault MCP server. Provides skills for managing notes, groups, and knowledge via memvault's Streamable HTTP MCP server.",
   "author": {

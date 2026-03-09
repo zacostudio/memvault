@@ -54,4 +54,4 @@ Input: none. Returns: array of `id`, `name`, `color`, `icon`, `parent_id`
 
 ## Tool Name Prefix
 
-In Claude Code: `mcp__plugin_memvault-noteman_memvault__<tool_name>`
+In Claude Code: `mcp__plugin_memvault-plugin_memvault__<tool_name>`
