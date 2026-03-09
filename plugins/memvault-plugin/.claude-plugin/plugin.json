@@ -1,15 +1,9 @@
 {
-  "name": "memvault-plugin",
-  "version": "0.3.3",
-  "description": "Marketplace plugin for memvault MCP server. Provides skills for managing notes, groups, and knowledge via memvault's Streamable HTTP MCP server.",
-  "author": {
-    "name": "zacostudio"
-  },
-  "keywords": ["memvault", "mcp", "notes", "knowledge-management", "marketplace"],
-  "mcpServers": {
-    "memvault": {
-      "type": "http",
-      "url": "http://localhost:19836/mcp"
-    }
-  }
+	"name": "memvault-plugin",
+	"version": "0.4.0",
+	"description": "Marketplace plugin for memvault MCP server. Provides skills for managing notes, groups, and knowledge via memvault's MCP server with a stable stdio bridge.",
+	"author": {
+		"name": "zacostudio"
+	},
+	"keywords": ["memvault", "mcp", "notes", "knowledge-management", "marketplace"]
 }

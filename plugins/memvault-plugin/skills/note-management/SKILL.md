@@ -6,8 +6,7 @@ description: >
   "update note", "delete note", "organize notes into groups",
   "list my notes", "memvault에 노트 저장", "노트 검색", "노트 관리",
   or mentions working with memvault notes or knowledge vault.
-  Provides comprehensive guidance for managing notes via memvault's
-  Streamable HTTP MCP server.
+  Provides comprehensive guidance for managing notes via memvault's MCP server.
 ---
 
 # Memvault Note Management
@@ -17,20 +16,16 @@ creating, reading, updating, deleting, searching notes, and organizing them into
 
 ## MCP Server Connection
 
-Memvault uses **Streamable HTTP** transport with `"type": "http"` in `.mcp.json`. The MCP endpoint is:
+Memvault uses a **stdio bridge** (`bridge.mjs`) that proxies requests to the memvault app's
+HTTP MCP server. The bridge is automatically started by Claude Code — no manual setup needed.
 
-```
-http://localhost:<PORT>/mcp
-```
-
-- Default port: **19836**
-- Transport: Streamable HTTP (`type: "http"` in `.mcp.json`)
-- Protocol version: `2025-06-18` (MCP spec, negotiated during initialization)
-- Session management: Server returns `Mcp-Session-Id` header for session continuity
+- **Transport**: stdio (via bridge.mjs → HTTP to memvault app)
+- **Default port**: 19836 (configurable)
+- **Requirement**: memvault desktop app must be running with MCP server enabled
 
 ### Port Configuration
 
-Check `.claude/memvault-plugin.local.md` for custom port settings:
+Custom port can be set in `~/.claude/memvault-plugin.local.md`:
 
 ```yaml
 ---
@@ -38,10 +33,14 @@ port: 19836
 ---
 ```
 
-If the file does not exist, use default port **19836**.
-If the memvault app changed its MCP server port, update both:
-1. `.claude/memvault-plugin.local.md` — the `port` field
-2. `.mcp.json` in the plugin root — the `url` field
+Or via environment variable `MEMVAULT_MCP_PORT`.
+
+### Connection Errors
+
+If you see an error like "memvault 앱에 연결할 수 없습니다", the user needs to:
+1. Open the memvault desktop app
+2. Go to Settings → Integration
+3. Enable the MCP server
 
 ## Available MCP Tools
 
@@ -106,9 +105,9 @@ When creating notes, specify the `mode` parameter:
 
 If MCP tools are unavailable:
 1. Verify memvault app is running
-2. Check MCP server port in memvault app settings
-3. Confirm port matches `.mcp.json` configuration
-4. Run `/mcp` in Claude Code to verify server connection
+2. Check MCP server is enabled in memvault app Settings → Integration
+3. Check port matches configuration (`~/.claude/memvault-plugin.local.md`)
+4. Run `/mcp` in Claude Code to verify server connection status
 
 ## Additional Resources
 

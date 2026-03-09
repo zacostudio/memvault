@@ -1,6 +1,7 @@
 {
 	"memvault": {
-		"type": "http",
-		"url": "http://localhost:19836/mcp"
+		"type": "stdio",
+		"command": "node",
+		"args": ["${CLAUDE_PLUGIN_ROOT}/bridge.mjs"]
 	}
 }
