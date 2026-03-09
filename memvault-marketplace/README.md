@@ -16,38 +16,29 @@ Claude Code plugin for managing notes and knowledge via [memvault](https://githu
 
 ## Installation
 
-### Option 1: Install from npm (recommended)
+### Step 1: Add marketplace
 
-```bash
-claude install-plugin memvault-marketplace
-```
-
-### Option 2: Install from local directory
-
-Clone this repository and install directly:
-
-```bash
-git clone https://github.com/zacostudio/memvault.gh.git
-claude install-plugin ./memvault.gh/memvault-marketplace
-```
-
-### Option 3: Test without installing
-
-Run Claude Code with the plugin directory for one-time testing:
-
-```bash
-claude --plugin-dir /path/to/memvault-marketplace
-```
-
-### Verify Installation
-
-After installation, start Claude Code and run:
+In Claude Code, run:
 
 ```
-/mcp
+/plugin marketplace add zacostudio/memvault.gh
 ```
 
-Check that the `memvault` server appears in the list. If it shows as connected, the plugin is ready to use.
+### Step 2: Install plugin
+
+```
+/plugin install memvault-marketplace@zacostudio-memvault-gh
+```
+
+### Verify
+
+After installation, run `/mcp` and check that the `memvault` server appears connected.
+
+To reload after changes:
+
+```
+/reload-plugins
+```
 
 ## Configuration
 
@@ -127,9 +118,9 @@ The note management skill activates automatically when you mention memvault note
 
 ### Plugin not loading
 
-1. Confirm installation: `claude plugins` to list installed plugins
-2. Re-install if needed: `claude install-plugin memvault-marketplace`
-3. Restart Claude Code after any configuration changes
+1. Confirm installation: `/plugin list`
+2. Reload plugins: `/reload-plugins`
+3. Restart Claude Code after configuration changes
 
 ## License
 

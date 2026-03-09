@@ -10,9 +10,11 @@ The **memvault-marketplace** plugin lets you manage memvault notes directly from
 
 ### Install
 
-```bash
-git clone https://github.com/zacostudio/memvault.gh.git
-claude install-plugin ./memvault.gh/memvault-marketplace
+In Claude Code, run:
+
+```
+/plugin marketplace add zacostudio/memvault.gh
+/plugin install memvault-marketplace@zacostudio-memvault-gh
 ```
 
 See [memvault-marketplace/README.md](./memvault-marketplace/README.md) for details.
