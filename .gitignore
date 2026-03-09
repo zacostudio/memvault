@@ -1,1 +1,4 @@
 macos/
+.DS_Store
+node_modules/
+.claude/*.local.md

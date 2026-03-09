@@ -19,6 +19,7 @@ Check if `.claude/memvault-marketplace.local.md` exists for port settings.
 
 If an argument was provided, use it as the port number.
 If no argument, check these sources in order:
+
 1. `.claude/memvault-marketplace.local.md` — `port` field in YAML frontmatter
 2. Default: **19836**
 
@@ -53,6 +54,7 @@ Connected to memvault MCP server at port <PORT>.
 ### 5. Show Summary
 
 Display:
+
 - Configured port
 - Connection status
 - Available MCP tools (if connected)
