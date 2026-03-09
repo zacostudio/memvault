@@ -16,11 +16,38 @@ Claude Code plugin for managing notes and knowledge via [memvault](https://githu
 
 ## Installation
 
+### Option 1: Install from npm (recommended)
+
+```bash
+claude install-plugin memvault-marketplace
+```
+
+### Option 2: Install from local directory
+
+Clone this repository and install directly:
+
+```bash
+git clone https://github.com/zacostudio/memvault.gh.git
+claude install-plugin ./memvault.gh/memvault-marketplace
+```
+
+### Option 3: Test without installing
+
+Run Claude Code with the plugin directory for one-time testing:
+
 ```bash
 claude --plugin-dir /path/to/memvault-marketplace
 ```
 
-Or add to your Claude Code plugins directory.
+### Verify Installation
+
+After installation, start Claude Code and run:
+
+```
+/mcp
+```
+
+Check that the `memvault` server appears in the list. If it shows as connected, the plugin is ready to use.
 
 ## Configuration
 
@@ -59,12 +86,21 @@ Or use the setup command:
 
 ### Note Management
 
-The note management skill activates automatically when you ask about memvault notes:
+The note management skill activates automatically when you mention memvault notes:
 
-- "Create a note in memvault about today's meeting"
-- "Search my memvault notes for API design"
-- "List all notes in the 'Projects' group"
-- "Update the deployment checklist note"
+```
+"Create a note in memvault about today's meeting"
+"Search my memvault notes for API design"
+"List all notes in the 'Projects' group"
+"Update the deployment checklist note"
+```
+
+### Setup Command
+
+```
+/memvault-marketplace:memvault-setup         # Check connection with default port
+/memvault-marketplace:memvault-setup 8080    # Configure custom port
+```
 
 ### Available MCP Tools
 
@@ -80,14 +116,20 @@ The note management skill activates automatically when you ask about memvault no
 | `list_groups` | List all groups |
 | `assign_note_group` | Assign note to group |
 
-## MCP Server Details
+## Troubleshooting
 
-memvault uses **Streamable HTTP** transport (not classic SSE):
+### MCP server not connecting
 
-- **Endpoint**: `POST http://localhost:<PORT>/mcp`
-- **Request**: JSON-RPC 2.0 with `Content-Type: application/json`
-- **Response**: `text/event-stream` (SSE format)
-- **Session**: `Mcp-Session-Id` header for session continuity
+1. Ensure memvault desktop app is running
+2. Check that MCP server is enabled in memvault settings
+3. Verify the port matches (default: 19836)
+4. Run `/mcp` in Claude Code to check server status
+
+### Plugin not loading
+
+1. Confirm installation: `claude plugins` to list installed plugins
+2. Re-install if needed: `claude install-plugin memvault-marketplace`
+3. Restart Claude Code after any configuration changes
 
 ## License
 
