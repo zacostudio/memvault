@@ -17,14 +17,15 @@ creating, reading, updating, deleting, searching notes, and organizing them into
 
 ## MCP Server Connection
 
-Memvault uses **Streamable HTTP** transport. In `.mcp.json`, `"type": "sse"` is used. The MCP endpoint is:
+Memvault uses **Streamable HTTP** transport with `"type": "url"` in `.mcp.json`. The MCP endpoint is:
 
 ```
 http://localhost:<PORT>/mcp
 ```
 
 - Default port: **19836**
-- Protocol: MCP over Streamable HTTP (type `"sse"`)
+- Transport: Streamable HTTP (`type: "url"` in `.mcp.json`)
+- Protocol version: `2025-06-18` (MCP spec, negotiated during initialization)
 - Session management: Server returns `Mcp-Session-Id` header for session continuity
 
 ### Port Configuration

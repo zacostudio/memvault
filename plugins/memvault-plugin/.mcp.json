@@ -1,8 +1,8 @@
 {
-  "mcpServers": {
-    "memvault": {
-      "command": "bash",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-bridge.sh"]
-    }
-  }
+	"mcpServers": {
+		"memvault": {
+			"type": "url",
+			"url": "http://localhost:19836/mcp"
+		}
+	}
 }
