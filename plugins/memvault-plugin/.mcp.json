@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "memvault": {
-      "type": "streamable-http",
+      "type": "http",
       "url": "http://localhost:19836/mcp"
     }
   }

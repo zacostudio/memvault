@@ -6,7 +6,7 @@ Claude Code plugin for managing notes and knowledge via [memvault](https://githu
 
 - **Note Management Skill** — Create, read, update, delete, and search notes in memvault
 - **Group Organization** — Organize notes into groups (folders) with colors and icons
-- **Streamable HTTP MCP** — Connects via Streamable HTTP (type `"streamable-http"`)
+- **Streamable HTTP MCP** — Connects via Streamable HTTP (type `"http"`)
 - **Configurable Port** — Supports custom MCP server port via settings file
 
 ## Prerequisites
@@ -60,7 +60,7 @@ port: 19836
 {
   "mcpServers": {
     "memvault": {
-      "type": "streamable-http",
+      "type": "http",
       "url": "http://localhost:<YOUR_PORT>/mcp"
     }
   }
