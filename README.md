@@ -13,7 +13,7 @@ The **memvault-plugin** plugin lets you manage memvault notes directly from Clau
 In Claude Code, run:
 
 ```
-/plugin marketplace add memvault-marketplace
+/plugin marketplace add zacostudio/memvault
 /plugin install memvault-plugin@memvault-marketplace
 ```
 
