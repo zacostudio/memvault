@@ -17,14 +17,14 @@ creating, reading, updating, deleting, searching notes, and organizing them into
 
 ## MCP Server Connection
 
-Memvault uses **Streamable HTTP** transport (not classic SSE). The MCP endpoint is:
+Memvault uses **Streamable HTTP** transport. In `.mcp.json`, `"type": "sse"` is used for Claude Code compatibility. The MCP endpoint is:
 
 ```
 http://localhost:<PORT>/mcp
 ```
 
 - Default port: **19836**
-- Protocol: MCP over Streamable HTTP (responds with `text/event-stream`)
+- Protocol: MCP over Streamable HTTP (type `"sse"` for Claude Code compatibility)
 - Session management: Server returns `Mcp-Session-Id` header for session continuity
 
 ### Port Configuration

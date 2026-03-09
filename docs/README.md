@@ -6,7 +6,7 @@ Claude Code plugin for managing notes and knowledge via [memvault](https://githu
 
 - **Note Management Skill** — Create, read, update, delete, and search notes in memvault
 - **Group Organization** — Organize notes into groups (folders) with colors and icons
-- **Streamable HTTP MCP** — Connects to memvault's Streamable HTTP MCP server
+- **Streamable HTTP MCP** — Connects via Streamable HTTP (type `"sse"` for Claude Code compatibility)
 - **Configurable Port** — Supports custom MCP server port via settings file
 
 ## Prerequisites
