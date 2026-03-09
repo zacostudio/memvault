@@ -1,0 +1,6 @@
+{
+  "memvault": {
+    "type": "sse",
+    "url": "http://localhost:19836/mcp"
+  }
+}
