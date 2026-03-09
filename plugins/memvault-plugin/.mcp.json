@@ -1,8 +1,6 @@
 {
-	"mcpServers": {
-		"memvault": {
-			"type": "http",
-			"url": "http://localhost:19836/mcp"
-		}
+	"memvault": {
+		"type": "http",
+		"url": "http://localhost:19836/mcp"
 	}
 }

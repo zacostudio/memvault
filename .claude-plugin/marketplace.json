@@ -1,22 +1,22 @@
 {
-	"name": "memvault-plugin",
-	"owner": {
-		"name": "zacostudio"
-	},
-	"metadata": {
-		"version": "0.3.1",
-		"description": "Memvault Claude Code plugin marketplace",
-		"repository": {
-			"type": "git",
-			"url": "https://github.com/zacostudio/memvault"
-		}
-	},
-	"plugins": [
-		{
-			"name": "memvault-plugin",
-			"source": "./plugins/memvault-plugin",
-			"description": "Manage notes, groups, and knowledge via memvault MCP server. Create, read, update, delete, and search notes directly from Claude Code.",
-			"category": "integration"
-		}
-	]
+  "name": "memvault-marketplace",
+  "owner": {
+    "name": "zacostudio"
+  },
+  "metadata": {
+    "version": "0.3.2",
+    "description": "Memvault Claude Code plugin marketplace",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/zacostudio/memvault"
+    }
+  },
+  "plugins": [
+    {
+      "name": "memvault-plugin",
+      "source": "./plugins/memvault-plugin",
+      "description": "Manage notes, groups, and knowledge via memvault MCP server. Create, read, update, delete, and search notes directly from Claude Code.",
+      "category": "integration"
+    }
+  ]
 }
