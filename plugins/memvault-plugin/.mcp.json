@@ -1,7 +1,8 @@
 {
   "mcpServers": {
     "memvault": {
-      "command": "${CLAUDE_PLUGIN_ROOT}/mcp-bridge.sh"
+      "command": "bash",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-bridge.sh"]
     }
   }
 }
