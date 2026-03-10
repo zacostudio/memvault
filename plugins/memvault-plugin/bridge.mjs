@@ -42,6 +42,8 @@ async function main() {
     const port = await resolvePort();
     const mcpUrl = `http://127.0.0.1:${port}/mcp`;
     let sessionId = null;
+    let lastInitParams = null;
+    let isRetrying = false;
 
     const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });
 
@@ -59,7 +61,7 @@ async function main() {
             jsonrpc: "2.0",
             id: `_bridge_reinit_${Date.now()}`,
             method: "initialize",
-            params: {
+            params: lastInitParams || {
                 protocolVersion: "2025-06-18",
                 capabilities: {},
                 clientInfo: { name: "memvault-bridge", version: "1.0" },
@@ -71,31 +73,23 @@ async function main() {
         };
 
         try {
-            const res = await fetch(mcpUrl, {
-                method: "POST",
-                headers: initHeaders,
-                body: JSON.stringify(initMsg),
-                signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-            });
+            const res = await sendRequest(initMsg, initHeaders);
 
             const sid = res.headers.get("mcp-session-id");
             if (sid) {
                 sessionId = sid;
-                // Consume the response body
                 await res.text();
-                // Send initialized notification
-                const notifHeaders = { ...initHeaders };
-                notifHeaders["Mcp-Session-Id"] = sessionId;
-                await fetch(mcpUrl, {
-                    method: "POST",
-                    headers: notifHeaders,
-                    body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }),
-                    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-                }).then((r) => r.text()).catch(() => {});
+                // Complete handshake with initialized notification
+                const notifHeaders = { ...initHeaders, "Mcp-Session-Id": sessionId };
+                await sendRequest(
+                    { jsonrpc: "2.0", method: "notifications/initialized" },
+                    notifHeaders,
+                ).then((r) => r.text()).catch(() => {});
+                process.stderr.write(`bridge: session recovered (sid: ${sid.slice(0, 8)}...)\n`);
                 return true;
             }
         } catch {
-            // Re-init failed
+            process.stderr.write("bridge: session recovery failed\n");
         }
         return false;
     }
@@ -112,6 +106,12 @@ async function main() {
         }
 
         const isRequest = msg.id !== undefined;
+
+        // Cache the original initialize params for session recovery
+        if (msg.method === "initialize" && msg.params) {
+            lastInitParams = msg.params;
+        }
+
         const headers = {
             "Content-Type": "application/json",
             Accept: "application/json, text/event-stream",
@@ -136,15 +136,16 @@ async function main() {
         const sid = res.headers.get("mcp-session-id");
         if (sid) sessionId = sid;
 
-        // Session expired or server restarted — auto re-initialize and retry
-        if (res.status === 404) {
+        // Session expired or server restarted — auto re-initialize and retry (once only)
+        if (res.status === 404 && !isRetrying) {
             const body = await res.text().catch(() => "");
             if (body.includes("Session not found")) {
                 process.stderr.write("bridge: session expired, re-initializing...\n");
                 sessionId = null;
                 const recovered = await reinitializeSession();
                 if (recovered && isRequest) {
-                    // Retry the original request with new session
+                    // Retry the original request with new session (once only)
+                    isRetrying = true;
                     const retryHeaders = {
                         "Content-Type": "application/json",
                         Accept: "application/json, text/event-stream",
@@ -162,8 +163,10 @@ async function main() {
                                 `세션 복구 후 재시도 실패: ${retryErr.message}`,
                             ),
                         );
+                        isRetrying = false;
                         continue;
                     }
+                    isRetrying = false;
                 } else if (isRequest) {
                     writeOut(
                         makeError(
@@ -189,6 +192,20 @@ async function main() {
                 }
                 continue;
             }
+        } else if (res.status === 404 && isRetrying) {
+            // Already retrying — don't loop, just report the error
+            if (isRequest) {
+                const body = await res.text().catch(() => "");
+                writeOut(
+                    makeError(
+                        msg.id,
+                        -32000,
+                        `세션 복구 후에도 요청 실패 (HTTP 404): ${body.slice(0, 200) || res.statusText}`,
+                    ),
+                );
+            }
+            isRetrying = false;
+            continue;
         }
 
         // HTTP 202: notification accepted — no output

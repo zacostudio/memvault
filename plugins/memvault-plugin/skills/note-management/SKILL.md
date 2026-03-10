@@ -61,7 +61,7 @@ All tools are prefixed with `mcp__plugin_memvault-plugin_memvault__` when used i
 ### Group Operations
 
 | Tool | Purpose | Required Params |
-|------|---------|-----------------| 
+|------|---------|-----------------|
 | `create_group` | Create a folder/group | `name` (optional: `color`, `icon`) |
 | `list_groups` | List all groups | none |
 | `assign_note_group` | Move note to group | `note_id` (optional: `group_id`, null to ungroup) |
@@ -69,7 +69,7 @@ All tools are prefixed with `mcp__plugin_memvault-plugin_memvault__` when used i
 ### Preview Operations
 
 | Tool | Purpose | Required Params |
-|------|---------|-----------------| 
+|------|---------|-----------------|
 | `preview_note` | Open preview popup for a note | `id` |
 | `preview_markdown` | Open preview popup for markdown text | `content` (optional: `title`) |
 
