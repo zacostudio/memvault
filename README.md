@@ -18,3 +18,50 @@ In Claude Code, run:
 ```
 
 See [Plugin Documentation](./docs/README.md) for details.
+
+## Available MCP Tools
+
+The memvault plugin exposes the following tools through Claude Code's MCP integration:
+
+### Note Operations
+
+| Tool | Description | Required Parameters |
+|------|-------------|---------------------|
+| `create_note` | Create a new note with markdown, plain text, or code content | `title`, `content` |
+| `get_note` | Retrieve full note content including metadata (title, mode, timestamps) | `id` |
+| `update_note` | Update an existing note's title and/or content | `id` |
+| `delete_note` | Permanently delete a note and its content file | `id` |
+| `list_notes` | List notes with optional group filtering and pagination | _(none)_ |
+| `search_notes` | Full-text search across note titles and content | `query` |
+
+### Group Operations
+
+| Tool | Description | Required Parameters |
+|------|-------------|---------------------|
+| `create_group` | Create a new folder/group with optional color and icon | `name` |
+| `list_groups` | List all groups with their id, name, color, icon, and parent | _(none)_ |
+| `assign_note_group` | Move a note into a group, or pass `null` to ungroup | `note_id` |
+
+### Preview Operations
+
+| Tool | Description | Required Parameters |
+|------|-------------|---------------------|
+| `preview_note` | Open a native popup window to preview a note's rendered markdown | `id` |
+| `preview_markdown` | Open a native popup window to preview arbitrary markdown text | `content` |
+
+### Note Modes
+
+When creating notes, you can specify a `mode` parameter:
+
+- **`markdown`** (default) — Rich text with markdown formatting
+- **`plain`** — Plain text without formatting
+- **`code`** — Code snippets with syntax highlighting
+
+### Example Usage
+
+```
+"Create a note in memvault titled 'Meeting Notes' with today's action items"
+"Search my notes for 'API design'"
+"List all notes in the Projects group"
+"Preview the deployment checklist note"
+```
