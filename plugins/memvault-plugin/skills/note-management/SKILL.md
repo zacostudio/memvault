@@ -4,7 +4,8 @@ description: >
   This skill should be used when the user asks to "create a note in memvault",
   "search notes", "manage notes", "save to memvault", "find my notes",
   "update note", "delete note", "organize notes into groups",
-  "list my notes", "memvault에 노트 저장", "노트 검색", "노트 관리",
+  "list my notes", "preview note", "preview markdown",
+  "memvault에 노트 저장", "노트 검색", "노트 관리", "미리보기",
   or mentions working with memvault notes or knowledge vault.
   Provides comprehensive guidance for managing notes via memvault's MCP server.
 ---
@@ -60,12 +61,25 @@ All tools are prefixed with `mcp__plugin_memvault-plugin_memvault__` when used i
 ### Group Operations
 
 | Tool | Purpose | Required Params |
-|------|---------|-----------------|
+|------|---------|-----------------| 
 | `create_group` | Create a folder/group | `name` (optional: `color`, `icon`) |
 | `list_groups` | List all groups | none |
 | `assign_note_group` | Move note to group | `note_id` (optional: `group_id`, null to ungroup) |
 
+### Preview Operations
+
+| Tool | Purpose | Required Params |
+|------|---------|-----------------| 
+| `preview_note` | Open preview popup for a note | `id` |
+| `preview_markdown` | Open preview popup for markdown text | `content` (optional: `title`) |
+
 ## Common Workflows
+
+### Preview a Note
+
+1. Use `search_notes` or `list_notes` to find the target note
+2. Use `preview_note` with the note ID to open a native preview window
+3. Or use `preview_markdown` to preview arbitrary markdown content
 
 ### Create and Organize a Note
 

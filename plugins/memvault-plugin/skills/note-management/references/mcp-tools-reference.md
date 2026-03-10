@@ -52,6 +52,22 @@ Input: none. Returns: array of `id`, `name`, `color`, `icon`, `parent_id`
 { "note_id": "string (required)", "group_id": "string|null (null to ungroup)" }
 ```
 
+## Preview Tools
+
+### preview_note
+```json
+{ "id": "string (required)" }
+```
+Returns: `success`, `window` (window label)
+Opens a native popup window to preview a note's markdown content.
+
+### preview_markdown
+```json
+{ "content": "string (required)", "title": "string|null" }
+```
+Returns: `success`, `window` (window label)
+Opens a native popup window to preview arbitrary markdown text.
+
 ## Tool Name Prefix
 
 In Claude Code: `mcp__plugin_memvault-plugin_memvault__<tool_name>`

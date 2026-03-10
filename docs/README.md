@@ -6,6 +6,7 @@ Claude Code plugin for managing notes and knowledge via [memvault](https://githu
 
 - **Note Management Skill** — Create, read, update, delete, and search notes in memvault
 - **Group Organization** — Organize notes into groups (folders) with colors and icons
+- **Markdown Preview** — Preview notes or markdown content in a native popup window
 - **Streamable HTTP MCP** — Connects via Streamable HTTP (type `"sse"`)
 - **Configurable Port** — Supports custom MCP server port via settings file
 
@@ -108,6 +109,8 @@ The note management skill activates automatically when you mention memvault note
 | `create_group` | Create a group/folder |
 | `list_groups` | List all groups |
 | `assign_note_group` | Assign note to group |
+| `preview_note` | Open native preview popup for a note |
+| `preview_markdown` | Open native preview popup for markdown text |
 
 ## Troubleshooting
 

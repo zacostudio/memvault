@@ -45,6 +45,61 @@ async function main() {
 
     const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });
 
+    async function sendRequest(msg, headers) {
+        return fetch(mcpUrl, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(msg),
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+        });
+    }
+
+    async function reinitializeSession() {
+        const initMsg = {
+            jsonrpc: "2.0",
+            id: `_bridge_reinit_${Date.now()}`,
+            method: "initialize",
+            params: {
+                protocolVersion: "2025-06-18",
+                capabilities: {},
+                clientInfo: { name: "memvault-bridge", version: "1.0" },
+            },
+        };
+        const initHeaders = {
+            "Content-Type": "application/json",
+            Accept: "application/json, text/event-stream",
+        };
+
+        try {
+            const res = await fetch(mcpUrl, {
+                method: "POST",
+                headers: initHeaders,
+                body: JSON.stringify(initMsg),
+                signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+            });
+
+            const sid = res.headers.get("mcp-session-id");
+            if (sid) {
+                sessionId = sid;
+                // Consume the response body
+                await res.text();
+                // Send initialized notification
+                const notifHeaders = { ...initHeaders };
+                notifHeaders["Mcp-Session-Id"] = sessionId;
+                await fetch(mcpUrl, {
+                    method: "POST",
+                    headers: notifHeaders,
+                    body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }),
+                    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+                }).then((r) => r.text()).catch(() => {});
+                return true;
+            }
+        } catch {
+            // Re-init failed
+        }
+        return false;
+    }
+
     for await (const line of rl) {
         if (!line.trim()) continue;
 
@@ -65,12 +120,7 @@ async function main() {
 
         let res;
         try {
-            res = await fetch(mcpUrl, {
-                method: "POST",
-                headers,
-                body: JSON.stringify(msg),
-                signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-            });
+            res = await sendRequest(msg, headers);
         } catch (err) {
             if (isRequest) {
                 const reason =
@@ -85,6 +135,61 @@ async function main() {
         // Capture session ID
         const sid = res.headers.get("mcp-session-id");
         if (sid) sessionId = sid;
+
+        // Session expired or server restarted — auto re-initialize and retry
+        if (res.status === 404) {
+            const body = await res.text().catch(() => "");
+            if (body.includes("Session not found")) {
+                process.stderr.write("bridge: session expired, re-initializing...\n");
+                sessionId = null;
+                const recovered = await reinitializeSession();
+                if (recovered && isRequest) {
+                    // Retry the original request with new session
+                    const retryHeaders = {
+                        "Content-Type": "application/json",
+                        Accept: "application/json, text/event-stream",
+                        "Mcp-Session-Id": sessionId,
+                    };
+                    try {
+                        res = await sendRequest(msg, retryHeaders);
+                        const retrySid = res.headers.get("mcp-session-id");
+                        if (retrySid) sessionId = retrySid;
+                    } catch (retryErr) {
+                        writeOut(
+                            makeError(
+                                msg.id,
+                                -32000,
+                                `세션 복구 후 재시도 실패: ${retryErr.message}`,
+                            ),
+                        );
+                        continue;
+                    }
+                } else if (isRequest) {
+                    writeOut(
+                        makeError(
+                            msg.id,
+                            -32000,
+                            "세션이 만료되었고 재연결에 실패했습니다. memvault 앱이 실행 중인지 확인하세요.",
+                        ),
+                    );
+                    continue;
+                } else {
+                    continue;
+                }
+            } else {
+                // Non-session 404 error
+                if (isRequest) {
+                    writeOut(
+                        makeError(
+                            msg.id,
+                            -32000,
+                            `memvault MCP 서버 에러 (HTTP 404): ${body.slice(0, 200) || res.statusText}`,
+                        ),
+                    );
+                }
+                continue;
+            }
+        }
 
         // HTTP 202: notification accepted — no output
         if (res.status === 202) continue;
