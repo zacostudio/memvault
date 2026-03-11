@@ -28,7 +28,7 @@ Returns: `id`, `title`, `mode`, `content`, `is_favorite`, `created_at`, `updated
 ```json
 { "group_id": "string|null", "limit": "integer|null (default: 100)", "offset": "integer|null (default: 0)" }
 ```
-Returns: array of `id`, `title`, `mode`, `is_favorite`, `created_at`, `updated_at`
+Returns: array of `id`, `title`, `mode`, `group_id`, `is_favorite`, `created_at`, `updated_at`
 
 ### search_notes
 ```json
@@ -40,9 +40,16 @@ Returns: matching notes with `id`, `title`, content snippet
 
 ### create_group
 ```json
-{ "name": "string (required)", "color": "string|null (hex)", "icon": "string|null" }
+{ "name": "string (required)", "color": "string|null (hex)", "icon": "string|null", "parent_id": "string|null (parent group ID, null for root)" }
 ```
 Returns: `id`, `name`
+
+### create_group_by_path
+```json
+{ "path": "string (required, slash-separated, e.g. \"Work/Projects/Frontend\")", "color": "string|null (hex)", "icon": "string|null" }
+```
+Creates each segment as a group. Existing intermediate groups are reused; missing ones are created automatically.
+Returns: `leaf_group_id`, `path`, `created_groups` (array of newly created `{id, name}`)
 
 ### list_groups
 Input: none. Returns: array of `id`, `name`, `color`, `icon`, `parent_id`

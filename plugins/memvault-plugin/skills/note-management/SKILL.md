@@ -62,7 +62,8 @@ All tools are prefixed with `mcp__plugin_memvault-plugin_memvault__` when used i
 
 | Tool | Purpose | Required Params |
 |------|---------|-----------------|
-| `create_group` | Create a folder/group | `name` (optional: `color`, `icon`) |
+| `create_group` | Create a folder/group | `name` (optional: `color`, `icon`, `parent_id`) |
+| `create_group_by_path` | Create groups from path (e.g. "Work/Projects") | `path` (optional: `color`, `icon`) |
 | `list_groups` | List all groups | none |
 | `assign_note_group` | Move note to group | `note_id` (optional: `group_id`, null to ungroup) |
 
@@ -83,8 +84,13 @@ All tools are prefixed with `mcp__plugin_memvault-plugin_memvault__` when used i
 
 ### Create and Organize a Note
 
+1. Use `create_group_by_path` with a slash-separated path (e.g. "Work/Projects/Frontend") — missing groups are created automatically
+2. Use `create_note` with title and markdown content
+3. Assign to the leaf group with `assign_note_group` using the returned `leaf_group_id`
+
+Alternatively, for simple cases:
 1. Use `list_groups` to check existing groups
-2. Create group if needed with `create_group`
+2. Create group if needed with `create_group` (supports `parent_id` for nesting)
 3. Use `create_note` with title and markdown content
 4. Assign to group with `assign_note_group`
 

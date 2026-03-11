@@ -38,7 +38,8 @@ The memvault plugin exposes the following tools through Claude Code's MCP integr
 
 | Tool | Description | Required Parameters |
 |------|-------------|---------------------|
-| `create_group` | Create a new folder/group with optional color and icon | `name` |
+| `create_group` | Create a new folder/group with optional color, icon, and parent | `name` |
+| `create_group_by_path` | Create groups from a slash-separated path (e.g. "Work/Projects/Frontend"). Missing intermediate groups are created automatically | `path` |
 | `list_groups` | List all groups with their id, name, color, icon, and parent | _(none)_ |
 | `assign_note_group` | Move a note into a group, or pass `null` to ungroup | `note_id` |
 
@@ -57,6 +58,16 @@ When creating notes, you can specify a `mode` parameter:
 - **`plain`** — Plain text without formatting
 - **`code`** — Code snippets with syntax highlighting
 
+### Slash Commands
+
+| Command | Description |
+|---------|-------------|
+| `/memvault-setup` | Configure MCP server connection (port, verify connectivity) |
+| `/memvault-save` | Quick save a note with optional group path and mode |
+| `/memvault-search` | Search notes by keyword and display results |
+| `/memvault-preview` | Preview a note or markdown in a native popup window |
+| `/memvault-list` | List notes or groups with optional filtering |
+
 ### Example Usage
 
 ```
@@ -64,4 +75,5 @@ When creating notes, you can specify a `mode` parameter:
 "Search my notes for 'API design'"
 "List all notes in the Projects group"
 "Preview the deployment checklist note"
+"Save this to memvault under Work/Projects/Frontend"
 ```
