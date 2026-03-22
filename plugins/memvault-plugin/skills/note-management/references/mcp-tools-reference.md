@@ -12,7 +12,7 @@ Returns: `id`, `title`
 ```json
 { "id": "string (required)" }
 ```
-Returns: `id`, `title`, `mode`, `content`, `is_favorite`, `created_at`, `updated_at`
+Returns: `id`, `title`, `mode`, `content`, `created_at`, `updated_at`
 
 ### update_note
 ```json
@@ -26,54 +26,25 @@ Returns: `id`, `title`, `mode`, `content`, `is_favorite`, `created_at`, `updated
 
 ### list_notes
 ```json
-{ "group_id": "string|null", "limit": "integer|null (default: 100)", "offset": "integer|null (default: 0)" }
+{ "group_id": "string|null" }
 ```
-Returns: array of `id`, `title`, `mode`, `group_id`, `is_favorite`, `created_at`, `updated_at`
+Returns: array of `id`, `title`, `mode`, `group_id`, `created_at`, `updated_at`
 
 ### search_notes
 ```json
 { "query": "string (required)" }
 ```
-Returns: matching notes with `id`, `title`, content snippet
+Returns: matching notes filtered by title/content containing query
 
 ## Group Tools
-
-### create_group
-```json
-{ "name": "string (required)", "color": "string|null (hex)", "icon": "string|null", "parent_id": "string|null (parent group ID, null for root)" }
-```
-Returns: `id`, `name`
-
-### create_group_by_path
-```json
-{ "path": "string (required, slash-separated, e.g. \"Work/Projects/Frontend\")", "color": "string|null (hex)", "icon": "string|null" }
-```
-Creates each segment as a group. Existing intermediate groups are reused; missing ones are created automatically.
-Returns: `leaf_group_id`, `path`, `created_groups` (array of newly created `{id, name}`)
 
 ### list_groups
 Input: none. Returns: array of `id`, `name`, `color`, `icon`, `parent_id`
 
-### assign_note_group
-```json
-{ "note_id": "string (required)", "group_id": "string|null (null to ungroup)" }
-```
+## Project Tools
 
-## Preview Tools
-
-### preview_note
-```json
-{ "id": "string (required)" }
-```
-Returns: `success`, `window` (window label)
-Opens a native popup window to preview a note's markdown content.
-
-### preview_markdown
-```json
-{ "content": "string (required)", "title": "string|null" }
-```
-Returns: `success`, `window` (window label)
-Opens a native popup window to preview arbitrary markdown text.
+### list_projects
+Input: none. Returns: array of registered projects
 
 ## Tool Name Prefix
 

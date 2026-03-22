@@ -1,9 +1,9 @@
 {
 	"name": "memvault-plugin",
-	"version": "0.5.1",
-	"description": "Marketplace plugin for memvault MCP server. Provides skills for managing notes, groups, knowledge, and markdown preview via memvault's MCP server with a stable stdio bridge.",
+	"version": "0.6.0",
+	"description": "Claude Code plugin for memvault. Manages notes, groups, and projects via memvault CLI. No server required — uses direct CLI execution.",
 	"author": {
 		"name": "zacostudio"
 	},
-	"keywords": ["memvault", "mcp", "notes", "knowledge-management", "marketplace"]
+	"keywords": ["memvault", "notes", "knowledge-management", "cli", "marketplace"]
 }

@@ -1,262 +1,287 @@
 #!/usr/bin/env node
 
 /**
- * stdio-to-HTTP MCP bridge for memvault.
- * Reads JSON-RPC from stdin, forwards to memvault's HTTP MCP server,
+ * CLI-based MCP bridge for memvault.
+ * Reads JSON-RPC from stdin, maps MCP tool calls to memvault CLI commands,
  * writes responses to stdout.
  */
 
 import { createInterface } from "node:readline";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
-const DEFAULT_PORT = 19836;
-const FETCH_TIMEOUT_MS = 30_000;
+const execFileAsync = promisify(execFile);
 
-async function resolvePort() {
-    try {
-        const configPath = join(
-            process.env.HOME || process.env.USERPROFILE || ".",
-            ".claude",
-            "memvault-plugin.local.md",
-        );
-        const content = await readFile(configPath, "utf-8");
-        const match = content.match(/^port:\s*(\d+)/m);
-        if (match) return Number(match[1]);
-    } catch {
-        // Config file not found — use default
-    }
-    return Number(process.env.MEMVAULT_MCP_PORT) || DEFAULT_PORT;
-}
+const MEMVAULT_BIN = "/Applications/Memvault.app/Contents/MacOS/memvault";
+const EXEC_TIMEOUT_MS = 30_000;
+
+const SERVER_INFO = {
+	name: "memvault",
+	version: "0.6.0",
+};
+
+const TOOL_DEFINITIONS = [
+	{
+		name: "list_notes",
+		description: "List notes with optional group filtering",
+		inputSchema: {
+			type: "object",
+			properties: {
+				group_id: { type: "string", description: "Filter by group ID" },
+			},
+		},
+	},
+	{
+		name: "get_note",
+		description: "Retrieve full note content including metadata",
+		inputSchema: {
+			type: "object",
+			properties: {
+				id: { type: "string", description: "Note ID" },
+			},
+			required: ["id"],
+		},
+	},
+	{
+		name: "create_note",
+		description: "Create a new note with markdown, plain text, or code content",
+		inputSchema: {
+			type: "object",
+			properties: {
+				title: { type: "string", description: "Note title" },
+				content: { type: "string", description: "Note content" },
+				mode: {
+					type: "string",
+					enum: ["markdown", "plain", "code"],
+					description: "Note mode (default: markdown)",
+				},
+			},
+			required: ["title", "content"],
+		},
+	},
+	{
+		name: "update_note",
+		description: "Update an existing note's title and/or content",
+		inputSchema: {
+			type: "object",
+			properties: {
+				id: { type: "string", description: "Note ID" },
+				title: { type: "string", description: "New title" },
+				content: { type: "string", description: "New content" },
+			},
+			required: ["id"],
+		},
+	},
+	{
+		name: "delete_note",
+		description: "Permanently delete a note and its content file",
+		inputSchema: {
+			type: "object",
+			properties: {
+				id: { type: "string", description: "Note ID" },
+			},
+			required: ["id"],
+		},
+	},
+	{
+		name: "search_notes",
+		description: "Search across note titles and content",
+		inputSchema: {
+			type: "object",
+			properties: {
+				query: { type: "string", description: "Search query" },
+			},
+			required: ["query"],
+		},
+	},
+	{
+		name: "list_groups",
+		description: "List all groups with their id, name, color, icon, and parent",
+		inputSchema: { type: "object", properties: {} },
+	},
+	{
+		name: "list_projects",
+		description: "List registered projects",
+		inputSchema: { type: "object", properties: {} },
+	},
+];
 
 function writeOut(data) {
-    process.stdout.write(typeof data === "string" ? data : JSON.stringify(data));
-    process.stdout.write("\n");
+	process.stdout.write(typeof data === "string" ? data : JSON.stringify(data));
+	process.stdout.write("\n");
+}
+
+function makeResult(id, result) {
+	return { jsonrpc: "2.0", id, result };
 }
 
 function makeError(id, code, message) {
-    return { jsonrpc: "2.0", id, error: { code, message } };
+	return { jsonrpc: "2.0", id, error: { code, message } };
+}
+
+async function runCli(args, stdinData) {
+	const options = { timeout: EXEC_TIMEOUT_MS, maxBuffer: 10 * 1024 * 1024 };
+	if (stdinData) {
+		options.input = stdinData;
+	}
+
+	try {
+		const { stdout, stderr } = await execFileAsync(MEMVAULT_BIN, args, options);
+		if (stderr) process.stderr.write(`memvault stderr: ${stderr}\n`);
+		return stdout.trim();
+	} catch (err) {
+		if (err.code === "ENOENT") {
+			throw new Error(
+				`memvault binary not found at ${MEMVAULT_BIN}. Is Memvault installed?`,
+			);
+		}
+		if (err.killed) {
+			throw new Error(`Command timed out after ${EXEC_TIMEOUT_MS / 1000}s`);
+		}
+		// CLI may write error to stderr and exit non-zero
+		const msg = err.stderr?.trim() || err.stdout?.trim() || err.message;
+		throw new Error(msg);
+	}
+}
+
+async function handleToolCall(name, args) {
+	switch (name) {
+		case "list_notes": {
+			const cliArgs = ["notes", "list", "--json"];
+			if (args.group_id) cliArgs.push("-g", args.group_id);
+			const out = await runCli(cliArgs);
+			return [{ type: "text", text: out }];
+		}
+
+		case "get_note": {
+			const out = await runCli(["notes", "read", "--json", args.id]);
+			return [{ type: "text", text: out }];
+		}
+
+		case "create_note": {
+			const cliArgs = ["notes", "create", "--json", "-t", args.title];
+			if (args.mode) cliArgs.push("-m", args.mode);
+			cliArgs.push("--stdin");
+			const out = await runCli(cliArgs, args.content);
+			return [{ type: "text", text: out }];
+		}
+
+		case "update_note": {
+			const cliArgs = ["notes", "update", "--json", args.id];
+			if (args.title) cliArgs.push("-t", args.title);
+			if (args.content) {
+				cliArgs.push("--stdin");
+				const out = await runCli(cliArgs, args.content);
+				return [{ type: "text", text: out }];
+			}
+			const out = await runCli(cliArgs);
+			return [{ type: "text", text: out }];
+		}
+
+		case "delete_note": {
+			const out = await runCli(["notes", "delete", "--json", args.id]);
+			return [{ type: "text", text: out }];
+		}
+
+		case "search_notes": {
+			const out = await runCli(["notes", "list", "--json"]);
+			const notes = JSON.parse(out);
+			const query = (args.query || "").toLowerCase();
+			const filtered = (Array.isArray(notes) ? notes : notes.notes || []).filter(
+				(n) =>
+					(n.title || "").toLowerCase().includes(query) ||
+					(n.content || "").toLowerCase().includes(query),
+			);
+			return [{ type: "text", text: JSON.stringify(filtered) }];
+		}
+
+		case "list_groups": {
+			const out = await runCli(["groups", "list", "--json"]);
+			return [{ type: "text", text: out }];
+		}
+
+		case "list_projects": {
+			const out = await runCli(["projects", "list", "--json"]);
+			return [{ type: "text", text: out }];
+		}
+
+		default:
+			throw new Error(`Tool "${name}" is not supported. Available tools: ${TOOL_DEFINITIONS.map((t) => t.name).join(", ")}`);
+	}
 }
 
 async function main() {
-    const port = await resolvePort();
-    const mcpUrl = `http://127.0.0.1:${port}/mcp`;
-    let sessionId = null;
-    let lastInitParams = null;
-    let isRetrying = false;
+	const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });
 
-    const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });
+	for await (const line of rl) {
+		if (!line.trim()) continue;
 
-    async function sendRequest(msg, headers) {
-        return fetch(mcpUrl, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(msg),
-            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-        });
-    }
+		let msg;
+		try {
+			msg = JSON.parse(line);
+		} catch {
+			process.stderr.write(`bridge: malformed JSON: ${line.slice(0, 120)}\n`);
+			continue;
+		}
 
-    async function reinitializeSession() {
-        const initMsg = {
-            jsonrpc: "2.0",
-            id: `_bridge_reinit_${Date.now()}`,
-            method: "initialize",
-            params: lastInitParams || {
-                protocolVersion: "2025-06-18",
-                capabilities: {},
-                clientInfo: { name: "memvault-bridge", version: "1.0" },
-            },
-        };
-        const initHeaders = {
-            "Content-Type": "application/json",
-            Accept: "application/json, text/event-stream",
-        };
+		const isRequest = msg.id !== undefined;
 
-        try {
-            const res = await sendRequest(initMsg, initHeaders);
+		switch (msg.method) {
+			case "initialize":
+				if (isRequest) {
+					writeOut(
+						makeResult(msg.id, {
+							protocolVersion: "2025-06-18",
+							capabilities: { tools: { listChanged: false } },
+							serverInfo: SERVER_INFO,
+						}),
+					);
+				}
+				break;
 
-            const sid = res.headers.get("mcp-session-id");
-            if (sid) {
-                sessionId = sid;
-                await res.text();
-                // Complete handshake with initialized notification
-                const notifHeaders = { ...initHeaders, "Mcp-Session-Id": sessionId };
-                await sendRequest(
-                    { jsonrpc: "2.0", method: "notifications/initialized" },
-                    notifHeaders,
-                ).then((r) => r.text()).catch(() => {});
-                process.stderr.write(`bridge: session recovered (sid: ${sid.slice(0, 8)}...)\n`);
-                return true;
-            }
-        } catch {
-            process.stderr.write("bridge: session recovery failed\n");
-        }
-        return false;
-    }
+			case "notifications/initialized":
+				// No response needed for notifications
+				break;
 
-    for await (const line of rl) {
-        if (!line.trim()) continue;
+			case "tools/list":
+				if (isRequest) {
+					writeOut(makeResult(msg.id, { tools: TOOL_DEFINITIONS }));
+				}
+				break;
 
-        let msg;
-        try {
-            msg = JSON.parse(line);
-        } catch {
-            process.stderr.write(`bridge: malformed JSON from stdin: ${line.slice(0, 120)}\n`);
-            continue;
-        }
+			case "tools/call":
+				if (isRequest) {
+					const { name, arguments: toolArgs } = msg.params || {};
+					try {
+						const content = await handleToolCall(name, toolArgs || {});
+						writeOut(makeResult(msg.id, { content, isError: false }));
+					} catch (err) {
+						writeOut(
+							makeResult(msg.id, {
+								content: [{ type: "text", text: err.message }],
+								isError: true,
+							}),
+						);
+					}
+				}
+				break;
 
-        const isRequest = msg.id !== undefined;
+			case "ping":
+				if (isRequest) {
+					writeOut(makeResult(msg.id, {}));
+				}
+				break;
 
-        // Cache the original initialize params for session recovery
-        if (msg.method === "initialize" && msg.params) {
-            lastInitParams = msg.params;
-        }
-
-        const headers = {
-            "Content-Type": "application/json",
-            Accept: "application/json, text/event-stream",
-        };
-        if (sessionId) headers["Mcp-Session-Id"] = sessionId;
-
-        let res;
-        try {
-            res = await sendRequest(msg, headers);
-        } catch (err) {
-            if (isRequest) {
-                const reason =
-                    err.name === "TimeoutError"
-                        ? `요청 시간이 초과되었습니다 (${FETCH_TIMEOUT_MS / 1000}초).`
-                        : `memvault 앱에 연결할 수 없습니다 (port ${port}). 앱을 실행하고 설정에서 MCP 서버를 활성화하세요.`;
-                writeOut(makeError(msg.id, -32000, reason));
-            }
-            continue;
-        }
-
-        // Capture session ID
-        const sid = res.headers.get("mcp-session-id");
-        if (sid) sessionId = sid;
-
-        // Session expired or server restarted — auto re-initialize and retry (once only)
-        if (res.status === 404 && !isRetrying) {
-            const body = await res.text().catch(() => "");
-            if (body.includes("Session not found")) {
-                process.stderr.write("bridge: session expired, re-initializing...\n");
-                sessionId = null;
-                const recovered = await reinitializeSession();
-                if (recovered && isRequest) {
-                    // Retry the original request with new session (once only)
-                    isRetrying = true;
-                    const retryHeaders = {
-                        "Content-Type": "application/json",
-                        Accept: "application/json, text/event-stream",
-                        "Mcp-Session-Id": sessionId,
-                    };
-                    try {
-                        res = await sendRequest(msg, retryHeaders);
-                        const retrySid = res.headers.get("mcp-session-id");
-                        if (retrySid) sessionId = retrySid;
-                    } catch (retryErr) {
-                        writeOut(
-                            makeError(
-                                msg.id,
-                                -32000,
-                                `세션 복구 후 재시도 실패: ${retryErr.message}`,
-                            ),
-                        );
-                        isRetrying = false;
-                        continue;
-                    }
-                    isRetrying = false;
-                } else if (isRequest) {
-                    writeOut(
-                        makeError(
-                            msg.id,
-                            -32000,
-                            "세션이 만료되었고 재연결에 실패했습니다. memvault 앱이 실행 중인지 확인하세요.",
-                        ),
-                    );
-                    continue;
-                } else {
-                    continue;
-                }
-            } else {
-                // Non-session 404 error
-                if (isRequest) {
-                    writeOut(
-                        makeError(
-                            msg.id,
-                            -32000,
-                            `memvault MCP 서버 에러 (HTTP 404): ${body.slice(0, 200) || res.statusText}`,
-                        ),
-                    );
-                }
-                continue;
-            }
-        } else if (res.status === 404 && isRetrying) {
-            // Already retrying — don't loop, just report the error
-            if (isRequest) {
-                const body = await res.text().catch(() => "");
-                writeOut(
-                    makeError(
-                        msg.id,
-                        -32000,
-                        `세션 복구 후에도 요청 실패 (HTTP 404): ${body.slice(0, 200) || res.statusText}`,
-                    ),
-                );
-            }
-            isRetrying = false;
-            continue;
-        }
-
-        // HTTP 202: notification accepted — no output
-        if (res.status === 202) continue;
-
-        // Handle HTTP errors
-        if (!res.ok) {
-            if (isRequest) {
-                const body = await res.text().catch(() => "");
-                writeOut(
-                    makeError(
-                        msg.id,
-                        -32000,
-                        `memvault MCP 서버 에러 (HTTP ${res.status}): ${body.slice(0, 200) || res.statusText}`,
-                    ),
-                );
-            }
-            continue;
-        }
-
-        const contentType = res.headers.get("content-type") || "";
-
-        if (contentType.includes("text/event-stream")) {
-            // Parse SSE: split by double-newline into blocks, extract data lines
-            const text = await res.text();
-            for (const block of text.split("\n\n")) {
-                const dataLines = [];
-                for (const line of block.split("\n")) {
-                    const trimmed = line.trim();
-                    if (trimmed.startsWith("data:")) {
-                        const payload = trimmed.slice(5).trim();
-                        if (payload && payload !== "[DONE]") {
-                            dataLines.push(payload);
-                        }
-                    }
-                }
-                if (dataLines.length > 0) {
-                    writeOut(dataLines.join(""));
-                }
-            }
-        } else {
-            // JSON response
-            const body = await res.text();
-            if (body.trim()) {
-                writeOut(body.trim());
-            }
-        }
-    }
+			default:
+				if (isRequest) {
+					writeOut(makeError(msg.id, -32601, `Method not found: ${msg.method}`));
+				}
+				break;
+		}
+	}
 }
 
 main().catch((err) => {
-    process.stderr.write(`bridge fatal: ${err.message}\n`);
-    process.exit(1);
+	process.stderr.write(`bridge fatal: ${err.message}\n`);
+	process.exit(1);
 });

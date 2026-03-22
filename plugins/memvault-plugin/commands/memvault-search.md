@@ -1,6 +1,6 @@
 ---
 description: Search notes in memvault by keyword
-allowed-tools: ["mcp__plugin_memvault-plugin_memvault__search_notes", "mcp__plugin_memvault-plugin_memvault__get_note", "mcp__plugin_memvault-plugin_memvault__preview_note"]
+allowed-tools: ["mcp__plugin_memvault-plugin_memvault__search_notes", "mcp__plugin_memvault-plugin_memvault__get_note"]
 argument-hint: "<query>"
 ---
 
@@ -44,4 +44,3 @@ If no results found, inform the user and suggest:
 
 After displaying results, ask the user if they want to:
 - **Read** a specific note (use `get_note`)
-- **Preview** a note in a popup window (use `preview_note`)

@@ -1,7 +1,7 @@
 ---
 description: List notes and groups in memvault
-allowed-tools: ["mcp__plugin_memvault-plugin_memvault__list_notes", "mcp__plugin_memvault-plugin_memvault__list_groups", "mcp__plugin_memvault-plugin_memvault__get_note", "mcp__plugin_memvault-plugin_memvault__preview_note"]
-argument-hint: "[notes|groups] [--group <name>] [--limit <n>]"
+allowed-tools: ["mcp__plugin_memvault-plugin_memvault__list_notes", "mcp__plugin_memvault-plugin_memvault__list_groups", "mcp__plugin_memvault-plugin_memvault__get_note"]
+argument-hint: "[notes|groups] [--group <id>]"
 ---
 
 # Memvault List
@@ -13,8 +13,7 @@ List notes or groups stored in memvault.
 ### 1. Parse Arguments
 
 - **First argument** (optional): `notes` (default) or `groups`
-- **--group <name>** (optional): Filter notes by group name
-- **--limit <n>** (optional): Number of notes to show (default: 20)
+- **--group <id>** (optional): Filter notes by group ID
 
 ### 2a. List Groups
 
@@ -33,21 +32,19 @@ If `groups` was specified:
 ### 2b. List Notes
 
 If `notes` was specified (or no argument):
-1. If `--group` was provided, use `list_groups` first to resolve the group ID by name
-2. Use `list_notes` with optional `group_id` and `limit`
-3. Display as a formatted list:
+1. Use `list_notes` with optional `group_id`
+2. Display as a formatted list:
 
 ```
-## Notes [in group "Work"]
+## Notes
 
-| # | Title | Mode | Favorite | Updated |
-|---|-------|------|----------|---------|
-| 1 | My Note | markdown | ⭐ | 2025-03-10 |
+| # | Title | Mode | Updated |
+|---|-------|------|---------|
+| 1 | My Note | markdown | 2025-03-10 |
 ```
 
 ### 3. Offer Actions
 
 After listing, ask the user if they want to:
 - **Read** a specific note
-- **Preview** a note in a popup window
 - **Search** for something specific

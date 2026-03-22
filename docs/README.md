@@ -1,19 +1,17 @@
 # memvault-plugin
 
-Claude Code plugin for managing notes and knowledge via [memvault](https://github.com/zacostudio/memvault) MCP server.
+Claude Code plugin for managing notes and knowledge via [memvault](https://github.com/zacostudio/memvault) CLI.
 
 ## Features
 
-- **Note Management Skill** — Create, read, update, delete, and search notes in memvault
-- **Group Organization** — Organize notes into groups (folders) with colors and icons
-- **Markdown Preview** — Preview notes or markdown content in a native popup window
-- **Streamable HTTP MCP** — Connects via Streamable HTTP (type `"sse"`)
-- **Configurable Port** — Supports custom MCP server port via settings file
+- **Note Management** — Create, read, update, delete, and search notes in memvault
+- **Group Listing** — View groups and their hierarchy
+- **Project Listing** — View registered projects
+- **CLI-based** — Uses memvault's built-in CLI mode, no server required
 
 ## Prerequisites
 
-- memvault desktop app running with MCP server enabled
-- Default MCP server port: **19836**
+- Memvault desktop app installed at `/Applications/Memvault.app`
 
 ## Installation
 
@@ -41,40 +39,29 @@ To reload after changes:
 /reload-plugins
 ```
 
-## Configuration
+## How It Works
 
-### MCP Server Port
-
-The default port is **19836**. To change it:
-
-1. Create `.claude/memvault-plugin.local.md` in your project:
-
-```markdown
----
-port: 19836
----
-```
-
-2. Update `.mcp.json` in the plugin directory to match:
-
-```json
-{
-  "mcpServers": {
-    "memvault": {
-      "type": "sse",
-      "url": "http://localhost:<YOUR_PORT>/mcp"
-    }
-  }
-}
-```
-
-3. Restart Claude Code for changes to take effect.
-
-Or use the setup command:
+The plugin includes a `bridge.mjs` that acts as a stdio MCP server. When Claude Code calls an MCP tool (e.g. `create_note`), the bridge translates the call into a memvault CLI command:
 
 ```
-/memvault-plugin:memvault-setup [port]
+create_note(title="X", content="Y")
+  → memvault notes create --json -t "X" --stdin <<< "Y"
 ```
+
+No HTTP server, no port configuration, no network — just direct CLI execution.
+
+## Available MCP Tools
+
+| Tool | CLI Command | Description |
+|------|-------------|-------------|
+| `list_notes` | `notes list --json` | List notes (optional: `group_id` filter) |
+| `get_note` | `notes read --json ID` | Read full note content |
+| `create_note` | `notes create --json -t TITLE --stdin` | Create a new note |
+| `update_note` | `notes update --json ID` | Update note title/content |
+| `delete_note` | `notes delete --json ID` | Delete a note |
+| `search_notes` | `notes list --json` + filter | Search by title/content |
+| `list_groups` | `groups list --json` | List all groups |
+| `list_projects` | `projects list --json` | List registered projects |
 
 ## Usage
 
@@ -89,37 +76,11 @@ The note management skill activates automatically when you mention memvault note
 "Update the deployment checklist note"
 ```
 
-### Setup Command
-
-```
-/memvault-plugin:memvault-setup         # Check connection with default port
-/memvault-plugin:memvault-setup 8080    # Configure custom port
-```
-
-### Available MCP Tools
-
-| Tool | Description |
-|------|-------------|
-| `create_note` | Create a new note (markdown, plain, or code) |
-| `get_note` | Read full note content by ID |
-| `update_note` | Update note title and/or content |
-| `delete_note` | Delete a note |
-| `list_notes` | List notes with optional group filter |
-| `search_notes` | Full-text search notes |
-| `create_group` | Create a group/folder |
-| `list_groups` | List all groups |
-| `assign_note_group` | Assign note to group |
-| `preview_note` | Open native preview popup for a note |
-| `preview_markdown` | Open native preview popup for markdown text |
-
 ## Troubleshooting
 
-### MCP server not connecting
+### "memvault binary not found"
 
-1. Ensure memvault desktop app is running
-2. Check that MCP server is enabled in memvault settings
-3. Verify the port matches (default: 19836)
-4. Run `/mcp` in Claude Code to check server status
+Memvault must be installed at `/Applications/Memvault.app`. Download the latest version from [Releases](https://github.com/zacostudio/memvault/releases).
 
 ### Plugin not loading
 

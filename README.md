@@ -6,9 +6,9 @@ Download the latest version from the [Releases](https://github.com/zacostudio/me
 
 ## Claude Code Plugin
 
-The **memvault-plugin** plugin lets you manage memvault notes directly from Claude Code.
+The **memvault-plugin** plugin lets you manage memvault notes directly from Claude Code via the memvault CLI.
 
-### Install
+### Install via Marketplace
 
 In Claude Code, run:
 
@@ -17,13 +17,38 @@ In Claude Code, run:
 /plugin install memvault-plugin@memvault-marketplace
 ```
 
+### Install without Marketplace
+
+You can use the plugin without the marketplace by adding the MCP server directly to your `.mcp.json`:
+
+**Option 1: Project-level** — add to `.mcp.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "memvault": {
+      "command": "/Applications/Memvault.app/Contents/MacOS/memvault",
+      "args": ["--json"]
+    }
+  }
+}
+```
+
+> Note: This registers the memvault CLI directly as an MCP server. The full plugin (with skills and slash commands) requires the marketplace install above.
+
+**Option 2: Global** — add to `~/.claude/.mcp.json` for all projects.
+
 See [Plugin Documentation](./docs/README.md) for details.
 
-## Available MCP Tools
+### How It Works
 
-The memvault plugin exposes the following tools through Claude Code's MCP integration:
+The plugin uses memvault's built-in **CLI mode** to interact with your vault. When you call an MCP tool, the plugin translates it into a CLI command (e.g. `memvault notes list --json`) and returns the result. No separate server or network connection is required — the plugin talks directly to the memvault binary.
 
-### Note Operations
+**Requirement:** Memvault must be installed at `/Applications/Memvault.app`.
+
+### Available MCP Tools
+
+#### Note Operations
 
 | Tool | Description | Required Parameters |
 |------|-------------|---------------------|
@@ -31,26 +56,17 @@ The memvault plugin exposes the following tools through Claude Code's MCP integr
 | `get_note` | Retrieve full note content including metadata (title, mode, timestamps) | `id` |
 | `update_note` | Update an existing note's title and/or content | `id` |
 | `delete_note` | Permanently delete a note and its content file | `id` |
-| `list_notes` | List notes with optional group filtering and pagination | _(none)_ |
+| `list_notes` | List notes with optional group filtering | _(none)_ |
 | `search_notes` | Full-text search across note titles and content | `query` |
 
-### Group Operations
+#### Group & Project Operations
 
 | Tool | Description | Required Parameters |
 |------|-------------|---------------------|
-| `create_group` | Create a new folder/group with optional color, icon, and parent | `name` |
-| `create_group_by_path` | Create groups from a slash-separated path (e.g. "Work/Projects/Frontend"). Missing intermediate groups are created automatically | `path` |
 | `list_groups` | List all groups with their id, name, color, icon, and parent | _(none)_ |
-| `assign_note_group` | Move a note into a group, or pass `null` to ungroup | `note_id` |
+| `list_projects` | List registered projects | _(none)_ |
 
-### Preview Operations
-
-| Tool | Description | Required Parameters |
-|------|-------------|---------------------|
-| `preview_note` | Open a native popup window to preview a note's rendered markdown | `id` |
-| `preview_markdown` | Open a native popup window to preview arbitrary markdown text | `content` |
-
-### Note Modes
+#### Note Modes
 
 When creating notes, you can specify a `mode` parameter:
 
@@ -62,10 +78,8 @@ When creating notes, you can specify a `mode` parameter:
 
 | Command | Description |
 |---------|-------------|
-| `/memvault-setup` | Configure MCP server connection (port, verify connectivity) |
-| `/memvault-save` | Quick save a note with optional group path and mode |
+| `/memvault-save` | Quick save a note with optional mode |
 | `/memvault-search` | Search notes by keyword and display results |
-| `/memvault-preview` | Preview a note or markdown in a native popup window |
 | `/memvault-list` | List notes or groups with optional filtering |
 
 ### Example Usage
@@ -74,6 +88,5 @@ When creating notes, you can specify a `mode` parameter:
 "Create a note in memvault titled 'Meeting Notes' with today's action items"
 "Search my notes for 'API design'"
 "List all notes in the Projects group"
-"Preview the deployment checklist note"
-"Save this to memvault under Work/Projects/Frontend"
+"Save this to memvault"
 ```
