@@ -17,7 +17,7 @@ const EXEC_TIMEOUT_MS = 30_000;
 
 const SERVER_INFO = {
 	name: "memvault",
-	version: "0.6.0",
+	version: "0.7.0",
 };
 
 const TOOL_DEFINITIONS = [
@@ -44,7 +44,7 @@ const TOOL_DEFINITIONS = [
 	},
 	{
 		name: "create_note",
-		description: "Create a new note with markdown, plain text, or code content",
+		description: "Create a new note with markdown, canvas, or code content",
 		inputSchema: {
 			type: "object",
 			properties: {
@@ -52,7 +52,7 @@ const TOOL_DEFINITIONS = [
 				content: { type: "string", description: "Note content" },
 				mode: {
 					type: "string",
-					enum: ["markdown", "plain", "code"],
+					enum: ["markdown", "canvas", "code"],
 					description: "Note mode (default: markdown)",
 				},
 			},
@@ -84,8 +84,36 @@ const TOOL_DEFINITIONS = [
 		},
 	},
 	{
+		name: "search",
+		description:
+			"Unified search across notes, links, todos, files, and projects. Returns results grouped by scope.",
+		inputSchema: {
+			type: "object",
+			properties: {
+				query: { type: "string", description: "Search query" },
+				scope: {
+					type: "string",
+					enum: ["notes", "links", "todos", "files", "projects"],
+					description:
+						"Limit search to a specific scope (default: all scopes)",
+				},
+				content: {
+					type: "boolean",
+					description:
+						"Also search file/note content, not just titles (default: false)",
+				},
+				limit: {
+					type: "number",
+					description: "Maximum results per scope (default: 20)",
+				},
+			},
+			required: ["query"],
+		},
+	},
+	{
 		name: "search_notes",
-		description: "Search across note titles and content",
+		description:
+			"Search notes by title (shortcut for search with scope=notes). Use 'search' tool for multi-scope searches.",
 		inputSchema: {
 			type: "object",
 			properties: {
@@ -103,6 +131,87 @@ const TOOL_DEFINITIONS = [
 		name: "list_projects",
 		description: "List registered projects",
 		inputSchema: { type: "object", properties: {} },
+	},
+	{
+		name: "add_project",
+		description: "Register a project directory in memvault",
+		inputSchema: {
+			type: "object",
+			properties: {
+				path: {
+					type: "string",
+					description: "Absolute path to the project directory",
+				},
+			},
+			required: ["path"],
+		},
+	},
+	{
+		name: "list_files",
+		description:
+			"List files in a registered project directory (respects .gitignore)",
+		inputSchema: {
+			type: "object",
+			properties: {
+				path: {
+					type: "string",
+					description: "Absolute path to a directory under a registered project",
+				},
+			},
+			required: ["path"],
+		},
+	},
+	{
+		name: "read_file",
+		description: "Read the content of a file under a registered project",
+		inputSchema: {
+			type: "object",
+			properties: {
+				path: {
+					type: "string",
+					description: "Absolute path to the file",
+				},
+			},
+			required: ["path"],
+		},
+	},
+	{
+		name: "write_file",
+		description:
+			"Create a new file under a registered project (fails if file already exists)",
+		inputSchema: {
+			type: "object",
+			properties: {
+				path: {
+					type: "string",
+					description: "Absolute path for the new file",
+				},
+				content: {
+					type: "string",
+					description: "File content to write",
+				},
+			},
+			required: ["path", "content"],
+		},
+	},
+	{
+		name: "update_file",
+		description:
+			"Overwrite an existing file under a registered project (fails if file does not exist)",
+		inputSchema: {
+			type: "object",
+			properties: {
+				path: {
+					type: "string",
+					description: "Absolute path to the existing file",
+				},
+				content: {
+					type: "string",
+					description: "New file content",
+				},
+			},
+			required: ["path", "content"],
+		},
 	},
 ];
 
@@ -183,16 +292,19 @@ async function handleToolCall(name, args) {
 			return [{ type: "text", text: out }];
 		}
 
+		case "search": {
+			const cliArgs = ["search", "--json", args.query];
+			if (args.scope) cliArgs.push("--scope", args.scope);
+			if (args.content) cliArgs.push("--content");
+			if (args.limit) cliArgs.push("--limit", String(args.limit));
+			const out = await runCli(cliArgs);
+			return [{ type: "text", text: out }];
+		}
+
 		case "search_notes": {
-			const out = await runCli(["notes", "list", "--json"]);
-			const notes = JSON.parse(out);
-			const query = (args.query || "").toLowerCase();
-			const filtered = (Array.isArray(notes) ? notes : notes.notes || []).filter(
-				(n) =>
-					(n.title || "").toLowerCase().includes(query) ||
-					(n.content || "").toLowerCase().includes(query),
-			);
-			return [{ type: "text", text: JSON.stringify(filtered) }];
+			const cliArgs = ["search", "--json", "--scope", "notes", args.query];
+			const out = await runCli(cliArgs);
+			return [{ type: "text", text: out }];
 		}
 
 		case "list_groups": {
@@ -202,6 +314,33 @@ async function handleToolCall(name, args) {
 
 		case "list_projects": {
 			const out = await runCli(["projects", "list", "--json"]);
+			return [{ type: "text", text: out }];
+		}
+
+		case "add_project": {
+			const out = await runCli(["projects", "add", "--json", args.path]);
+			return [{ type: "text", text: out }];
+		}
+
+		case "list_files": {
+			const out = await runCli(["files", "list", "--json", args.path]);
+			return [{ type: "text", text: out }];
+		}
+
+		case "read_file": {
+			const out = await runCli(["files", "read", "--json", args.path]);
+			return [{ type: "text", text: out }];
+		}
+
+		case "write_file": {
+			const cliArgs = ["files", "write", "--json", args.path, "--stdin"];
+			const out = await runCli(cliArgs, args.content);
+			return [{ type: "text", text: out }];
+		}
+
+		case "update_file": {
+			const cliArgs = ["files", "update", "--json", args.path, "--stdin"];
+			const out = await runCli(cliArgs, args.content);
 			return [{ type: "text", text: out }];
 		}
 

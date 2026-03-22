@@ -1,7 +1,7 @@
 {
 	"name": "memvault-plugin",
-	"version": "0.6.0",
-	"description": "Claude Code plugin for memvault. Manages notes, groups, and projects via memvault CLI. No server required — uses direct CLI execution.",
+	"version": "0.7.0",
+	"description": "Claude Code plugin for memvault. Manages notes, groups, projects, and files via memvault CLI. Includes unified search across all content types. No server required — uses direct CLI execution.",
 	"author": {
 		"name": "zacostudio"
 	},
